@@ -1,0 +1,59 @@
+- name: Ensure kubectl is installed
+  ansible.builtin.command: which kubectl
+  register: kubectl_installed
+  failed_when: kubectl_installed.rc != 0
+  changed_when: false
+  ignore_errors: yes
+
+- name: Install kubectl if not present
+  ansible.builtin.shell: |
+    curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/
+  when: kubectl_installed.rc != 0
+  become: yes
+
+- name: Ensure k3d is installed
+  ansible.builtin.command: which k3d
+  register: k3d_installed
+  failed_when: k3d_installed.rc != 0
+  changed_when: false
+  ignore_errors: yes
+
+- name: Install k3d if not present
+  ansible.builtin.shell: |
+    curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+  when: k3d_installed.rc != 0
+  become: yes
+
+- name: Create k3d cluster
+  ansible.builtin.command: >
+    k3d cluster create demo-cluster
+    --servers 1
+    --agents 2
+    --port 30000:30000@loadbalancer
+  register: create_output
+  changed_when: "'Created cluster' in create_output.stdout"
+
+- name: Set KUBECONFIG variable for kubectl
+  ansible.builtin.set_fact:
+    kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/config"
+  
+- name: Check kubeconfig
+  ansible.builtin.stat:
+    path: "{{ kubeconfig }}"
+  register: kubeconfig_stat
+
+- name: Copy kubeconfig to local machine (if necessary)
+  ansible.builtin.copy:
+    src: "{{ kubeconfig }}"
+    dest: "~/.kube/config"
+    mode: 0600
+  when: kubeconfig_stat.stat.exists == False
+
+- name: Verify cluster is up
+  ansible.builtin.command: kubectl get nodes
+  register: kubectl_output
+  failed_when: kubectl_output.rc != 0
+  changed_when: false
+
