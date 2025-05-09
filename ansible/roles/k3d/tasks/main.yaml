@@ -28,10 +28,11 @@
 
 - name: Create k3d cluster
   ansible.builtin.command: >
-    k3d cluster create demo-cluster
+    k3d cluster create test-cluster
     --servers 1
     --agents 2
-    --port 30000:30000@loadbalancer
+    --port "80:80@loadbalancer"
+    --port "443:443@loadbalancer"
   register: create_output
   changed_when: "'Created cluster' in create_output.stdout"
 
