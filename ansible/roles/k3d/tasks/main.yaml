@@ -33,6 +33,7 @@
     --agents 2
     --port "80:80@loadbalancer"
     --port "443:443@loadbalancer"
+    --k3s-arg "--disable=traefik@server:0"
   register: create_output
   changed_when: "'Created cluster' in create_output.stdout"
 
@@ -58,3 +59,18 @@
   failed_when: kubectl_output.rc != 0
   changed_when: false
 
+- name: Add ingress-nginx Helm repo
+  community.kubernetes.helm_repository:
+    name: ingress-nginx
+    repo_url: https://kubernetes.github.io/ingress-nginx
+
+- name: Install ingress-nginx via Helm
+  community.kubernetes.helm:
+    name: ingress-nginx
+    chart_ref: ingress-nginx/ingress-nginx
+    release_namespace: ingress-nginx
+    create_namespace: true
+    values:
+      controller:
+        service:
+          type: NodePort
