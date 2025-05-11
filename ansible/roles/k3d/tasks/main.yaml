@@ -37,6 +37,19 @@
   register: create_output
   changed_when: "'Created cluster' in create_output.stdout"
 
+- name: Ensure Helm is installed
+  ansible.builtin.command: which helm
+  register: helm_installed
+  failed_when: helm_installed.rc != 0
+  changed_when: false
+  ignore_errors: yes
+
+- name: Install Helm if not present
+  ansible.builtin.shell: |
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  when: helm_installed.rc != 0
+  become: yes
+
 - name: Set KUBECONFIG variable for kubectl
   ansible.builtin.set_fact:
     kubeconfig: "{{ lookup('env', 'HOME') }}/.kube/config"
@@ -72,5 +85,9 @@
     create_namespace: true
     values:
       controller:
+        ingressClassResource:
+          name: nginx
+          enabled: true
+          default: true
         service:
           type: NodePort
