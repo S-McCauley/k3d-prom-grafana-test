@@ -31,8 +31,8 @@
     k3d cluster create test-cluster
     --servers 1
     --agents 2
-    --port "80:80@loadbalancer"
-    --port "443:443@loadbalancer"
+    --port "8081:80@loadbalancer"
+    --port "8443:443@loadbalancer"
     --k3s-arg "--disable=traefik@server:0"
   register: create_output
   changed_when: "'Created cluster' in create_output.stdout"
