@@ -126,3 +126,28 @@
             - /prometheus
           pathType: Prefix
 
+- name: Add Grafana Helm Repo 
+  community.kubernetes.helm_repository:
+    name: grafana
+    repo_url: https://grafana.github.io/helm-charts
+
+- name: Install Grafana
+  community.kubernetes.helm:
+    name: grafana
+    chart_ref: grafana/grafana
+    release_namespace: monitoring
+    create_namespace: true
+    values:
+      ingress:
+        enabled: true
+        ingressClassName: nginx
+        annotations:
+          kubernetes.io/ingress.class: nginx
+        hosts:
+          - grafana.local
+        paths:
+          - /grafana
+        pathType: Prefix
+      adminPassword: "admin"  # You may want to use Vault or Ansible Vault for this
+
+  
