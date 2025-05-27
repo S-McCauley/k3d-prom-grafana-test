@@ -17,7 +17,7 @@ spec:
           service:
             name: grafana
             port:
-              number: 3000
+              number: 80
   - host: prometheus.local
     http:
       paths:
@@ -27,5 +27,5 @@ spec:
           service:
             name: prometheus
             port:
-              number: 9090
+              number: 80
 

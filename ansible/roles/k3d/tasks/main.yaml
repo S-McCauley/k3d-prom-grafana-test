@@ -90,7 +90,7 @@
           enabled: true
           default: true
         service:
-          type: NodePort
+          type: LoadBalancer
         minReadySeconds: 0
         progressDeadlineSeconds: 60
 
@@ -117,11 +117,12 @@
       server:
         ingress:
           enabled: true
+          ingressClassName: nginx
           annotations:
             kubernetes.io/ingress.class: nginx
           hosts:
             - prometheus.local
           paths:
-            - /
+            - /prometheus
           pathType: Prefix
 
